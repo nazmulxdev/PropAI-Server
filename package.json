@@ -1,0 +1,30 @@
+{
+  "name": "propai_server",
+  "version": "1.0.0",
+  "description": "PropAI — Real Estate Platform",
+  "license": "ISC",
+  "author": "Md Nazmul Hossen",
+  "type": "module",
+  "main": "/src/server.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./dist/server.js",
+    "dev": "tsx watch ./src/server.ts",
+    "lint": "eslint ./src/**/*",
+    "push": "tsx ./src/scripts/gitpush.ts"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "env": "^0.0.2",
+    "express": "^5.2.1",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "typescript": "^6.0.3"
+  }
+}
