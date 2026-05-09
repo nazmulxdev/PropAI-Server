@@ -1,8 +1,13 @@
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import qs from "qs";
-import type { Application, Request, Response } from "express";
+import type { Application, NextFunction, Request, Response } from "express";
 import express from "express";
+import globalErrorHandler from "./middlewares/GlobalErrors";
+import { toNodeHandler } from "better-auth/node";
+import notFoundError from "./middlewares/NotFound";
+import { auth } from "./lib/auth";
+import { indexRoutes } from "./routes";
 
 const app: Application = express();
 app.set("trust proxy", true);
@@ -23,16 +28,34 @@ app.use(
 // cookie-parser
 app.use(cookieParser());
 
+// better-auth api routes
+app.all(
+  "/api/auth/*splat",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await toNodeHandler(auth)(req, res);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
+app.use("/api/v1", indexRoutes);
+
 app.get("/", (req: Request, res: Response) => {
   res.status(200).json({
-    message: "Welcome to the EcoSpark Hub.",
+    message: "Welcome to the PropAI API.",
     success: true,
     docs: "/api/v1/docs",
     status: "Running",
   });
 });
+
+app.use(notFoundError);
+
+app.use(globalErrorHandler);
 
 export default app;
