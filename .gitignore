@@ -9,3 +9,6 @@ generated
 eslint.config.mjs
 api
 .vercel
+/generated/prisma
+
+/generated/prisma
