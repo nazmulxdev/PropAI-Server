@@ -9,6 +9,7 @@ import { statsRoutes } from "../modules/stats/stats.routes.js";
 import { ragRoutes } from "../modules/rag/rag.routes.js";
 import { blogRoutes } from "../modules/blog/blog.routes.js";
 import { userRoutes } from "../modules/user/user.routes.js";
+import { messageRoutes } from "../modules/messages/messages.routes.js";
 
 const router = Router();
 
@@ -52,6 +53,10 @@ const moduleRoutes = [
   {
     path: "/users",
     route: userRoutes,
+  },
+  {
+    path: "/messages",
+    route: messageRoutes,
   },
 ];
 

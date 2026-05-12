@@ -1,90 +1,84 @@
 import { Request, Response } from "express";
-import catchAsync from "../../shared/CatchAsync.js";
-import AppResponse from "../../shared/AppResponse.js";
-import { inquiryService } from "./inquiry.service.js";
+import catchAsync from "../../shared/CatchAsync";
+import AppResponse from "../../shared/AppResponse";
+import { inquiryService } from "./inquiry.service";
+import { IQueryParams } from "../../interfaces/query.interface";
 
-const sendInquiry = catchAsync(async (req: Request, res: Response) => {
+export const createInquiry = catchAsync(async (req: Request, res: Response) => {
   const buyerId = req.user!.id;
-  const { propertyId, message } = req.body;
-  const inquiry = await inquiryService.sendInquiry(buyerId, propertyId, message);
-
+  const inquiry = await inquiryService.createInquiry(buyerId, req.body);
   AppResponse(res, {
     statusCode: 201,
     success: true,
-    message: "Inquiry sent successfully",
+    message: "Inquiry sent",
     data: { inquiry },
   });
 });
 
-const getBuyerInquiries = catchAsync(async (req: Request, res: Response) => {
-  const buyerId = req.user!.id;
-  const inquiries = await inquiryService.getBuyerInquiries(buyerId);
+export const getSentInquiries = catchAsync(
+  async (req: Request, res: Response) => {
+    const buyerId = req.user!.id;
+    const result = await inquiryService.getSentInquiries(
+      buyerId,
+      req.query as IQueryParams,
+    );
+    AppResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Sent inquiries fetched",
+      data: result.data,
+      meta: result.meta,
+    });
+  },
+);
 
-  AppResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Inquiries fetched successfully",
-    data: { inquiries },
-  });
-});
+export const getReceivedInquiries = catchAsync(
+  async (req: Request, res: Response) => {
+    const sellerId = req.user!.id;
+    const result = await inquiryService.getReceivedInquiries(
+      sellerId,
+      req.query as IQueryParams,
+    );
+    AppResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Received inquiries fetched",
+      data: result.data,
+      meta: result.meta,
+    });
+  },
+);
 
-const getSellerInquiries = catchAsync(async (req: Request, res: Response) => {
-  const sellerId = req.user!.id;
-  const inquiries = await inquiryService.getSellerInquiries(sellerId);
+export const getAllInquiriesAdmin = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await inquiryService.getAllInquiriesAdmin(
+      req.query as IQueryParams,
+    );
+    AppResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "All inquiries fetched",
+      data: result.data,
+      meta: result.meta,
+    });
+  },
+);
 
-  AppResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Received inquiries fetched successfully",
-    data: { inquiries },
-  });
-});
-
-const updateInquiryStatus = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user!.id;
-  const role = req.user!.role;
-  const inquiryId = req.params.id as string;
-  const { status } = req.body;
-
-  const inquiry = await inquiryService.updateInquiryStatus(inquiryId, status, userId, role);
-
-  AppResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Inquiry status updated successfully",
-    data: { inquiry },
-  });
-});
-
-const getConversationByInquiryId = catchAsync(async (req: Request, res: Response) => {
-  const inquiryId = req.params.id as string;
-  const conversation = await inquiryService.getConversationByInquiryId(inquiryId);
-
-  AppResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Conversation fetched successfully",
-    data: { conversation },
-  });
-});
-
-const getMessagesByConversationId = catchAsync(async (req: Request, res: Response) => {
-  const conversationId = req.params.id as string;
-  const messages = await inquiryService.getMessagesByConversationId(conversationId);
-
-  AppResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Messages fetched successfully",
-    data: { messages },
-  });
-});
-
-export const inquiryController = {
-  sendInquiry,
-  getBuyerInquiries,
-  getSellerInquiries,
-  updateInquiryStatus,
-  getConversationByInquiryId,
-  getMessagesByConversationId,
-};
+export const updateInquiryStatus = catchAsync(
+  async (req: Request, res: Response) => {
+    const sellerId = req.user!.id;
+    const inquiryId = req.params.id as string;
+    const { status } = req.body;
+    const inquiry = await inquiryService.updateInquiryStatus(
+      inquiryId,
+      sellerId,
+      status,
+    );
+    AppResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: `Inquiry marked as ${status}`,
+      data: { inquiry },
+    });
+  },
+);

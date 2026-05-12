@@ -1,179 +1,183 @@
-import { prisma } from "../../lib/prisma.js";
-import AppError from "../../shared/AppError.js";
-import { InquiryStatus, Role } from "../../../generated/prisma/enums.js";
-import { notificationService } from "../notifications/notification.service.js";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Inquiry, Prisma } from "../../../generated/prisma/client";
+import { prisma } from "../../lib/prisma";
+import AppError from "../../shared/AppError";
+import { InquiryStatus, PropertyStatus } from "../../../generated/prisma/enums";
+import { IQueryParams } from "../../interfaces/query.interface";
 
-const sendInquiry = async (
+import {
+  inquirySearchableFields,
+  inquiryFilterableFields,
+  inquiryDefaultInclude,
+} from "./inquiry.constant";
+import { QueryBuilder } from "../../utils/QueryBuilders";
+
+// Buyer creates an inquiry + starts a conversation automatically
+const createInquiry = async (
   buyerId: string,
-  propertyId: string,
-  message: string,
+  payload: { propertyId: string; message: string },
 ) => {
   const property = await prisma.property.findUnique({
-    where: { id: propertyId },
-    select: { sellerId: true, title: true },
+    where: { id: payload.propertyId },
   });
-
-  if (!property) {
-    throw new AppError(404, "Property not found", "NOT_FOUND");
+  if (!property || property.status !== PropertyStatus.ACTIVE) {
+    throw new AppError(
+      400,
+      "Property not found or not active",
+      "INVALID_PROPERTY",
+    );
   }
-
   if (property.sellerId === buyerId) {
     throw new AppError(
       400,
-      "You cannot inquire about your own property",
-      "BAD_REQUEST",
+      "You cannot inquire on your own property",
+      "SELF_INQUIRY",
     );
   }
 
-  // Find or create conversation
-  let conversation = await prisma.conversation.findFirst({
-    where: {
-      propertyId,
+  // Create inquiry
+  const inquiry = await prisma.inquiry.create({
+    data: {
       buyerId,
       sellerId: property.sellerId,
+      propertyId: payload.propertyId,
+      message: payload.message,
+      status: InquiryStatus.PENDING,
     },
+    include: inquiryDefaultInclude,
   });
 
-  if (!conversation) {
-    conversation = await prisma.conversation.create({
+  // Create conversation if not exists (or retrieve existing)
+  await prisma.conversation.upsert({
+    where: {
+      // Need a unique constraint on (buyerId, sellerId, propertyId)? Not in schema.
+      // We'll handle manually: find first, then create if missing.
+      id: "", // dummy, we'll use findFirst + create
+    },
+    create: {
+      buyerId,
+      sellerId: property.sellerId,
+      propertyId: payload.propertyId,
+    },
+    update: {},
+  });
+  // Since no unique constraint, we can't use upsert directly; we'll do it manually.
+  // I'll show a manual approach:
+
+  const existingConv = await prisma.conversation.findFirst({
+    where: {
+      buyerId,
+      sellerId: property.sellerId,
+      propertyId: payload.propertyId,
+    },
+  });
+  if (!existingConv) {
+    await prisma.conversation.create({
       data: {
-        propertyId,
         buyerId,
         sellerId: property.sellerId,
+        propertyId: payload.propertyId,
       },
     });
   }
 
-  // Create Inquiry and Message in a transaction
-  const [inquiry] = await prisma.$transaction([
-    prisma.inquiry.create({
-      data: {
-        propertyId,
-        buyerId,
-        sellerId: property.sellerId,
-        message,
-        status: InquiryStatus.PENDING,
-      },
-    }),
-    prisma.message.create({
-      data: {
-        conversationId: conversation.id,
-        senderId: buyerId,
-        content: `Inquiry about ${property.title}: ${message}`,
-      },
-    }),
-  ]);
-
-  // Trigger notification for seller
-  notificationService
-    .createNotification(
-      property.sellerId,
-      "INQUIRY",
-      "New Inquiry Received",
-      `A buyer has inquired about your property: ${property.title}`,
-      `/dashboard/inquiries/${inquiry.id}`,
-    )
-    .catch(console.error);
-
   return inquiry;
 };
 
-const getBuyerInquiries = async (buyerId: string) => {
-  return await prisma.inquiry.findMany({
-    where: { buyerId },
-    include: {
-      property: {
-        select: { title: true, images: true, city: true },
-      },
-      seller: {
-        select: { name: true, image: true },
-      },
-    },
-    orderBy: { createdAt: "desc" },
+// Buyer: list own sent inquiries
+const getSentInquiries = async (buyerId: string, query: IQueryParams) => {
+  const queryBuilder = new QueryBuilder<
+    Inquiry,
+    Prisma.InquiryWhereInput,
+    Prisma.InquiryInclude
+  >(prisma.inquiry, query, {
+    searchableFields: inquirySearchableFields,
+    filterableFields: inquiryFilterableFields,
   });
+
+  const result = await queryBuilder
+    .search()
+    .filter()
+    .where({ buyerId } as any)
+    .paginate()
+    .sort()
+    .dynamicInclude(inquiryDefaultInclude)
+    .execute();
+
+  return result;
 };
 
-const getSellerInquiries = async (sellerId: string) => {
-  return await prisma.inquiry.findMany({
-    where: { sellerId },
-    include: {
-      property: {
-        select: { title: true, images: true, city: true },
-      },
-      buyer: {
-        select: { name: true, image: true, email: true },
-      },
-    },
-    orderBy: { createdAt: "desc" },
+// Seller: list received inquiries
+const getReceivedInquiries = async (sellerId: string, query: IQueryParams) => {
+  const queryBuilder = new QueryBuilder<
+    Inquiry,
+    Prisma.InquiryWhereInput,
+    Prisma.InquiryInclude
+  >(prisma.inquiry, query, {
+    searchableFields: inquirySearchableFields,
+    filterableFields: inquiryFilterableFields,
   });
+
+  const result = await queryBuilder
+    .search()
+    .filter()
+    .where({ sellerId } as any)
+    .paginate()
+    .sort()
+    .dynamicInclude(inquiryDefaultInclude)
+    .execute();
+
+  return result;
 };
 
+// Admin: list all inquiries
+const getAllInquiriesAdmin = async (query: IQueryParams) => {
+  const queryBuilder = new QueryBuilder<
+    Inquiry,
+    Prisma.InquiryWhereInput,
+    Prisma.InquiryInclude
+  >(prisma.inquiry, query, {
+    searchableFields: inquirySearchableFields,
+    filterableFields: inquiryFilterableFields,
+  });
+
+  const result = await queryBuilder
+    .search()
+    .filter()
+    .paginate()
+    .sort()
+    .dynamicInclude(inquiryDefaultInclude)
+    .execute();
+
+  return result;
+};
+
+// Seller updates inquiry status (REPLIED or CLOSED)
 const updateInquiryStatus = async (
   inquiryId: string,
-  status: InquiryStatus,
-  userId: string,
-  role: string,
+  sellerId: string,
+  newStatus: InquiryStatus,
 ) => {
-  const inquiry = await prisma.inquiry.findUnique({
+  const inquiry = await prisma.inquiry.findUnique({ where: { id: inquiryId } });
+  if (!inquiry) throw new AppError(404, "Inquiry not found", "NOT_FOUND");
+  if (inquiry.sellerId !== sellerId)
+    throw new AppError(403, "Unauthorized", "UNAUTHORIZED");
+  if (inquiry.status === InquiryStatus.CLOSED)
+    throw new AppError(400, "Inquiry is already closed", "ALREADY_CLOSED");
+
+  const updated = await prisma.inquiry.update({
     where: { id: inquiryId },
+    data: { status: newStatus },
+    include: inquiryDefaultInclude,
   });
 
-  if (!inquiry) {
-    throw new AppError(404, "Inquiry not found", "NOT_FOUND");
-  }
-
-  // Only seller of the property or admin can update status
-  if (inquiry.sellerId !== userId && role !== Role.ADMIN) {
-    throw new AppError(403, "Not authorized to update this inquiry", "UNAUTHORIZED");
-  }
-
-  return await prisma.inquiry.update({
-    where: { id: inquiryId },
-    data: { status },
-  });
-};
-
-const getConversationByInquiryId = async (inquiryId: string) => {
-  const inquiry = await prisma.inquiry.findUnique({
-    where: { id: inquiryId },
-    select: { propertyId: true, buyerId: true, sellerId: true },
-  });
-
-  if (!inquiry) {
-    throw new AppError(404, "Inquiry not found", "NOT_FOUND");
-  }
-
-  const conversation = await prisma.conversation.findFirst({
-    where: {
-      propertyId: inquiry.propertyId,
-      buyerId: inquiry.buyerId,
-      sellerId: inquiry.sellerId,
-    },
-    include: {
-      property: { select: { id: true, title: true } },
-      buyer: { select: { id: true, name: true, image: true } },
-      seller: { select: { id: true, name: true, image: true } },
-    },
-  });
-
-  return conversation;
-};
-
-const getMessagesByConversationId = async (conversationId: string) => {
-  return await prisma.message.findMany({
-    where: { conversationId },
-    orderBy: { createdAt: "asc" },
-    include: {
-      sender: { select: { id: true, name: true, image: true } },
-    },
-  });
+  return updated;
 };
 
 export const inquiryService = {
-  sendInquiry,
-  getBuyerInquiries,
-  getSellerInquiries,
+  createInquiry,
+  getSentInquiries,
+  getReceivedInquiries,
+  getAllInquiriesAdmin,
   updateInquiryStatus,
-  getConversationByInquiryId,
-  getMessagesByConversationId,
 };

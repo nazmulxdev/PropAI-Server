@@ -1,25 +1,16 @@
 import { Router } from "express";
-import { notificationController } from "./notification.controller.js";
-import authMiddleware from "../../middlewares/AuthMiddleware.js";
+import authMiddleware from "../../middlewares/AuthMiddleware";
+import { Role } from "../../../generated/prisma/enums";
+import { notificationController } from "./notification.controller";
 
 const router = Router();
 
-router.get(
-  "/",
-  authMiddleware(),
-  notificationController.getUserNotifications,
-);
+// All routes require auth
+router.use(authMiddleware(Role.BUYER, Role.SELLER, Role.ADMIN));
 
-router.patch(
-  "/read-all",
-  authMiddleware(),
-  notificationController.markAllAsRead,
-);
-
-router.patch(
-  "/:id/read",
-  authMiddleware(),
-  notificationController.markAsRead,
-);
+router.get("/", notificationController.getNotifications);
+router.patch("/:id/read", notificationController.markAsRead);
+router.post("/read-all", notificationController.markAllAsRead);
+router.delete("/:id", notificationController.deleteNotification);
 
 export const notificationRoutes = router;

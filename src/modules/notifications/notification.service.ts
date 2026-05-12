@@ -1,62 +1,92 @@
-import { prisma } from "../../lib/prisma.js";
-import AppError from "../../shared/AppError.js";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Notification, Prisma } from "../../../generated/prisma/client";
+import { prisma } from "../../lib/prisma";
+import AppError from "../../shared/AppError";
+import { IQueryParams } from "../../interfaces/query.interface";
 
-const createNotification = async (
-  userId: string,
-  type: string,
-  title: string,
-  message: string,
-  link?: string,
-) => {
-  return await prisma.notification.create({
-    data: {
-      userId,
-      type,
-      title,
-      message,
-      link,
-      isRead: false,
-    },
+import {
+  notificationSearchableFields,
+  notificationFilterableFields,
+  notificationDefaultInclude,
+} from "./notification.constant";
+import { QueryBuilder } from "../../utils/QueryBuilders";
+
+// Get paginated notifications for a user
+const getNotifications = async (userId: string, query: IQueryParams) => {
+  const queryBuilder = new QueryBuilder<
+    Notification,
+    Prisma.NotificationWhereInput,
+    Prisma.NotificationInclude
+  >(prisma.notification, query, {
+    searchableFields: notificationSearchableFields,
+    filterableFields: notificationFilterableFields,
   });
+  const result = await queryBuilder
+    .search()
+    .filter()
+    .where({ userId } as any)
+    .paginate()
+    .sort()
+    .dynamicInclude(notificationDefaultInclude)
+    .execute();
+
+  return result;
 };
 
-const getUserNotifications = async (userId: string) => {
-  return await prisma.notification.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    take: 50,
-  });
-};
-
+// Mark a single notification as read
 const markAsRead = async (notificationId: string, userId: string) => {
   const notification = await prisma.notification.findUnique({
     where: { id: notificationId },
   });
-
-  if (!notification) {
+  if (!notification)
     throw new AppError(404, "Notification not found", "NOT_FOUND");
-  }
+  if (notification.userId !== userId)
+    throw new AppError(403, "Unauthorized", "UNAUTHORIZED");
 
-  if (notification.userId !== userId) {
-    throw new AppError(403, "Not authorized", "UNAUTHORIZED");
-  }
-
-  return await prisma.notification.update({
+  return prisma.notification.update({
     where: { id: notificationId },
     data: { isRead: true },
   });
 };
 
+// Mark all notifications as read for a user
 const markAllAsRead = async (userId: string) => {
-  return await prisma.notification.updateMany({
+  await prisma.notification.updateMany({
     where: { userId, isRead: false },
     data: { isRead: true },
   });
+  return { message: "All notifications marked as read" };
+};
+
+// Delete a notification (soft delete? — we just hard delete)
+const deleteNotification = async (notificationId: string, userId: string) => {
+  const notification = await prisma.notification.findUnique({
+    where: { id: notificationId },
+  });
+  if (!notification)
+    throw new AppError(404, "Notification not found", "NOT_FOUND");
+  if (notification.userId !== userId)
+    throw new AppError(403, "Unauthorized", "UNAUTHORIZED");
+
+  await prisma.notification.delete({ where: { id: notificationId } });
+  return { message: "Notification deleted" };
+};
+
+// Utility to create a notification (called from other services / jobs)
+const createNotification = async (data: {
+  userId: string;
+  type: string;
+  title: string;
+  message: string;
+  link?: string;
+}) => {
+  return prisma.notification.create({ data });
 };
 
 export const notificationService = {
-  createNotification,
-  getUserNotifications,
+  getNotifications,
   markAsRead,
   markAllAsRead,
+  deleteNotification,
+  createNotification,
 };

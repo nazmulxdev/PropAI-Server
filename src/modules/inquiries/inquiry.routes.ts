@@ -1,51 +1,51 @@
 import { Router } from "express";
-import { inquiryController } from "./inquiry.controller.js";
-import authMiddleware from "../../middlewares/AuthMiddleware.js";
-import validateRequest from "../../middlewares/ValidateRequest.js";
-import { Role } from "../../../generated/prisma/enums.js";
+import authMiddleware from "../../middlewares/AuthMiddleware";
+import validateRequest from "../../middlewares/ValidateRequest";
+import { Role } from "../../../generated/prisma/enums";
 import {
   createInquirySchema,
   updateInquiryStatusSchema,
-} from "./inquiry.validation.js";
+} from "./inquiry.validation";
+import * as controller from "./inquiry.controller";
 
 const router = Router();
 
+// Buyer creates inquiry
 router.post(
   "/",
-  authMiddleware(Role.BUYER, Role.ADMIN),
+  authMiddleware(Role.BUYER),
   validateRequest(createInquirySchema),
-  inquiryController.sendInquiry,
+  controller.createInquiry,
 );
 
+// Buyer's sent inquiries
 router.get(
-  "/buyer",
-  authMiddleware(Role.BUYER, Role.ADMIN),
-  inquiryController.getBuyerInquiries,
+  "/sent",
+  authMiddleware(Role.BUYER),
+
+  controller.getSentInquiries,
 );
 
+// Seller's received inquiries
 router.get(
-  "/seller",
-  authMiddleware(Role.SELLER, Role.ADMIN),
-  inquiryController.getSellerInquiries,
+  "/received",
+  authMiddleware(Role.SELLER),
+  controller.getReceivedInquiries,
 );
 
+// Admin: all inquiries
+router.get(
+  "/admin",
+  authMiddleware(Role.ADMIN),
+  controller.getAllInquiriesAdmin,
+);
+
+// Seller updates inquiry status
 router.patch(
   "/:id/status",
-  authMiddleware(Role.SELLER, Role.ADMIN),
+  authMiddleware(Role.SELLER),
   validateRequest(updateInquiryStatusSchema),
-  inquiryController.updateInquiryStatus,
-);
-
-router.get(
-  "/:id/conversation",
-  authMiddleware(Role.BUYER, Role.SELLER, Role.ADMIN),
-  inquiryController.getConversationByInquiryId,
-);
-
-router.get(
-  "/conversation/:id/messages",
-  authMiddleware(Role.BUYER, Role.SELLER, Role.ADMIN),
-  inquiryController.getMessagesByConversationId,
+  controller.updateInquiryStatus,
 );
 
 export const inquiryRoutes = router;
