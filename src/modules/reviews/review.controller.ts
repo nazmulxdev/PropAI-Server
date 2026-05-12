@@ -1,62 +1,58 @@
 import { Request, Response } from "express";
-import catchAsync from "../../shared/CatchAsync.js";
-import AppResponse from "../../shared/AppResponse.js";
-import { reviewService } from "./review.service.js";
+import catchAsync from "../../shared/CatchAsync";
+import AppResponse from "../../shared/AppResponse";
+import { reviewService } from "./review.service";
+import { IQueryParams } from "../../interfaces/query.interface";
 
-const addReview = catchAsync(async (req: Request, res: Response) => {
+export const createReview = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user!.id;
-  const propertyId = req.params.propertyId as string;
-  const review = await reviewService.addReview(propertyId, userId, req.body);
-
+  const review = await reviewService.createReview(userId, req.body);
   AppResponse(res, {
     statusCode: 201,
     success: true,
-    message: "Review added successfully",
+    message: "Review submitted",
     data: { review },
   });
 });
 
-const getReviews = catchAsync(async (req: Request, res: Response) => {
-  const propertyId = req.params.propertyId as string;
-  const result = await reviewService.getReviews(propertyId);
+export const getReviewsByProperty = catchAsync(
+  async (req: Request, res: Response) => {
+    const propertyId = req.params.propertyId as string;
+    const result = await reviewService.getReviewsByProperty(
+      propertyId,
+      req.query as IQueryParams,
+    );
+    AppResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Reviews fetched",
+      data: result.data,
+      meta: result.meta,
+    });
+  },
+);
 
-  AppResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Reviews fetched successfully",
-    data: result,
-  });
-});
-
-const updateReview = catchAsync(async (req: Request, res: Response) => {
+export const updateReview = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user!.id;
   const reviewId = req.params.id as string;
   const review = await reviewService.updateReview(reviewId, userId, req.body);
-
   AppResponse(res, {
     statusCode: 200,
     success: true,
-    message: "Review updated successfully",
+    message: "Review updated",
     data: { review },
   });
 });
 
-const deleteReview = catchAsync(async (req: Request, res: Response) => {
+export const deleteReview = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user!.id;
+  const userRole = req.user!.role as string;
   const reviewId = req.params.id as string;
-  const result = await reviewService.deleteReview(reviewId, userId);
-
+  const result = await reviewService.deleteReview(reviewId, userId, userRole);
   AppResponse(res, {
     statusCode: 200,
     success: true,
-    message: "Review deleted successfully",
+    message: "Review deleted",
     data: result,
   });
 });
-
-export const reviewController = {
-  addReview,
-  getReviews,
-  updateReview,
-  deleteReview,
-};

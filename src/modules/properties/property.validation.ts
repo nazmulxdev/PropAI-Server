@@ -41,20 +41,3 @@ export const updatePropertySchema = {
     status: z.nativeEnum(PropertyStatus).optional(),
   }),
 };
-
-export const getPropertiesQuerySchema = {
-  query: z.object({
-    type: z.nativeEnum(PropertyType).optional(),
-    city: z.string().optional(),
-    listingType: z.nativeEnum(ListingType).optional(),
-    minPrice: z.string().regex(/^\d+$/).transform(Number).optional(),
-    maxPrice: z.string().regex(/^\d+$/).transform(Number).optional(),
-    bedrooms: z.string().regex(/^\d+$/).transform(Number).optional(),
-    search: z.string().optional(),
-    sortBy: z
-      .enum(["price_asc", "price_desc", "createdAt_desc", "createdAt_asc"])
-      .optional(),
-    page: z.string().regex(/^\d+$/).transform(Number).optional(),
-    limit: z.string().regex(/^\d+$/).transform(Number).optional(),
-  }),
-};

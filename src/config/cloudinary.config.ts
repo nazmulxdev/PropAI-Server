@@ -50,8 +50,8 @@ export const uploadFileToCloudinary = async (
     cloudinary.uploader
       .upload_stream(
         {
-          public_id: `EcoSpark-Hub/${folder}/${uniqueFilename}`,
-          folder: `EcoSpark-Hub/${folder}`,
+          public_id: `PropAI/${folder}/${uniqueFilename}`,
+          folder: `PropAI/${folder}`,
         },
         (error, result) => {
           if (error) {

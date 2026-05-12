@@ -1,35 +1,34 @@
 import { Router } from "express";
-import { reviewController } from "./review.controller.js";
-import authMiddleware from "../../middlewares/AuthMiddleware.js";
-import validateRequest from "../../middlewares/ValidateRequest.js";
-import { Role } from "../../../generated/prisma/enums.js";
-import {
-  createReviewSchema,
-  updateReviewSchema,
-} from "./review.validation.js";
+import authMiddleware from "../../middlewares/AuthMiddleware";
+import validateRequest from "../../middlewares/ValidateRequest";
+import { Role } from "../../../generated/prisma/enums";
+import { createReviewSchema, updateReviewSchema } from "./review.validation";
+import * as controller from "./review.controller";
 
 const router = Router();
 
+// Public: get reviews for a property
+router.get("/property/:propertyId", controller.getReviewsByProperty);
+
+// Buyer: create review
 router.post(
-  "/property/:propertyId",
+  "/",
   authMiddleware(Role.BUYER),
   validateRequest(createReviewSchema),
-  reviewController.addReview,
+  controller.createReview,
 );
 
-router.get("/property/:propertyId", reviewController.getReviews);
-
+// Owner: update / delete own review
 router.patch(
   "/:id",
   authMiddleware(Role.BUYER),
   validateRequest(updateReviewSchema),
-  reviewController.updateReview,
+  controller.updateReview,
 );
-
 router.delete(
   "/:id",
   authMiddleware(Role.BUYER, Role.ADMIN),
-  reviewController.deleteReview,
+  controller.deleteReview,
 );
 
 export const reviewRoutes = router;

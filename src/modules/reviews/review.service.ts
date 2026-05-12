@@ -1,175 +1,134 @@
-import { prisma } from "../../lib/prisma.js";
-import AppError from "../../shared/AppError.js";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Review, Prisma } from "../../../generated/prisma/client";
+import { prisma } from "../../lib/prisma";
+import AppError from "../../shared/AppError";
+import { IQueryParams } from "../../interfaces/query.interface";
 
-const _recalculatePropertyRating = async (propertyId: string) => {
-  const result = await prisma.review.aggregate({
+import {
+  reviewSearchableFields,
+  reviewFilterableFields,
+  reviewDefaultInclude,
+} from "./review.constant";
+import { QueryBuilder } from "../../utils/QueryBuilders";
+
+// Recalculate property's avgRating and reviewCount
+async function recalcPropertyRating(propertyId: string) {
+  const aggregate = await prisma.review.aggregate({
     where: { propertyId },
     _avg: { rating: true },
-    _count: { id: true },
+    _count: true,
   });
-
   await prisma.property.update({
     where: { id: propertyId },
     data: {
-      avgRating: result._avg.rating || 0,
-      reviewCount: result._count.id,
+      avgRating: aggregate._avg.rating ?? 0,
+      reviewCount: aggregate._count,
     },
   });
-};
+}
 
-const addReview = async (
-  propertyId: string,
+const createReview = async (
   userId: string,
-  data: { rating: number; comment: string },
+  payload: { propertyId: string; rating: number; comment: string },
 ) => {
+  // Check if property exists and is active
   const property = await prisma.property.findUnique({
-    where: { id: propertyId },
+    where: { id: payload.propertyId },
   });
-
-  if (!property) {
-    throw new AppError(404, "Property not found", "NOT_FOUND");
-  }
-
-  // Check if user has already reviewed
-  const existingReview = await prisma.review.findUnique({
-    where: {
-      userId_propertyId: {
-        userId,
-        propertyId,
-      },
-    },
-  });
-
-  if (existingReview) {
+  if (!property || property.status !== "ACTIVE")
     throw new AppError(
       400,
-      "You have already reviewed this property",
-      "BAD_REQUEST",
+      "Property not found or not active",
+      "INVALID_PROPERTY",
     );
-  }
+
+  // Check duplicate review
+  const existing = await prisma.review.findUnique({
+    where: { userId_propertyId: { userId, propertyId: payload.propertyId } },
+  });
+  if (existing)
+    throw new AppError(
+      409,
+      "You have already reviewed this property",
+      "DUPLICATE",
+    );
 
   const review = await prisma.review.create({
-    data: {
-      propertyId,
-      userId,
-      rating: data.rating,
-      comment: data.comment,
-    },
+    data: { ...payload, userId },
+    include: reviewDefaultInclude,
   });
 
-  await _recalculatePropertyRating(propertyId);
-
+  await recalcPropertyRating(payload.propertyId);
   return review;
 };
 
-const getReviews = async (propertyId: string) => {
-  const property = await prisma.property.findUnique({
-    where: { id: propertyId },
+const getReviewsByProperty = async (
+  propertyId: string,
+  query: IQueryParams,
+) => {
+  const queryBuilder = new QueryBuilder<
+    Review,
+    Prisma.ReviewWhereInput,
+    Prisma.ReviewInclude
+  >(prisma.review, query, {
+    searchableFields: reviewSearchableFields,
+    filterableFields: reviewFilterableFields,
   });
 
-  if (!property) {
-    throw new AppError(404, "Property not found", "NOT_FOUND");
-  }
+  const result = await queryBuilder
+    .search()
+    .filter()
+    .where({ propertyId } as any)
+    .paginate()
+    .sort()
+    .dynamicInclude(reviewDefaultInclude)
+    .execute();
 
-  const [reviews, breakdown] = await Promise.all([
-    prisma.review.findMany({
-      where: { propertyId },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.review.groupBy({
-      by: ["rating"],
-      where: { propertyId },
-      _count: { rating: true },
-    }),
-  ]);
-
-  // Format breakdown
-  const ratingBreakdown = {
-    5: 0,
-    4: 0,
-    3: 0,
-    2: 0,
-    1: 0,
-  };
-
-  breakdown.forEach((b) => {
-    ratingBreakdown[b.rating as keyof typeof ratingBreakdown] = b._count.rating;
-  });
-
-  return { reviews, ratingBreakdown };
+  return result;
 };
 
 const updateReview = async (
   reviewId: string,
   userId: string,
-  data: { rating?: number; comment?: string },
+  payload: { rating?: number; comment?: string },
 ) => {
-  const review = await prisma.review.findUnique({
-    where: { id: reviewId },
-  });
-
-  if (!review) {
-    throw new AppError(404, "Review not found", "NOT_FOUND");
-  }
-
-  if (review.userId !== userId) {
+  const review = await prisma.review.findUnique({ where: { id: reviewId } });
+  if (!review) throw new AppError(404, "Review not found", "NOT_FOUND");
+  if (review.userId !== userId)
     throw new AppError(
       403,
-      "You are not authorized to update this review",
+      "You can only edit your own review",
       "UNAUTHORIZED",
     );
-  }
 
-  const updatedReview = await prisma.review.update({
+  const updated = await prisma.review.update({
     where: { id: reviewId },
-    data,
+    data: payload,
+    include: reviewDefaultInclude,
   });
 
-  if (data.rating) {
-    await _recalculatePropertyRating(review.propertyId);
-  }
-
-  return updatedReview;
+  await recalcPropertyRating(review.propertyId);
+  return updated;
 };
 
-const deleteReview = async (reviewId: string, userId: string) => {
-  const review = await prisma.review.findUnique({
-    where: { id: reviewId },
-  });
+const deleteReview = async (
+  reviewId: string,
+  userId: string,
+  userRole: string,
+) => {
+  const review = await prisma.review.findUnique({ where: { id: reviewId } });
+  if (!review) throw new AppError(404, "Review not found", "NOT_FOUND");
+  if (review.userId !== userId && userRole !== "ADMIN")
+    throw new AppError(403, "Unauthorized", "UNAUTHORIZED");
 
-  if (!review) {
-    throw new AppError(404, "Review not found", "NOT_FOUND");
-  }
-
-  if (review.userId !== userId) {
-    throw new AppError(
-      403,
-      "You are not authorized to delete this review",
-      "UNAUTHORIZED",
-    );
-  }
-
-  await prisma.review.delete({
-    where: { id: reviewId },
-  });
-
-  await _recalculatePropertyRating(review.propertyId);
-
-  return { message: "Review deleted successfully" };
+  await prisma.review.delete({ where: { id: reviewId } });
+  await recalcPropertyRating(review.propertyId);
+  return { message: "Review deleted" };
 };
 
 export const reviewService = {
-  addReview,
-  getReviews,
+  createReview,
+  getReviewsByProperty,
   updateReview,
   deleteReview,
 };
