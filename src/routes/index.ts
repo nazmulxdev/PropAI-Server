@@ -6,6 +6,7 @@ import { notificationRoutes } from "../modules/notifications/notification.routes
 import { analyticsRoutes } from "../modules/analytics/analytics.routes.js";
 import { aiRoutes } from "../modules/ai/ai.routes.js";
 import { statsRoutes } from "../modules/stats/stats.routes.js";
+import { ragRoutes } from "../modules/rag/rag.routes.js";
 
 const router = Router();
 
@@ -37,6 +38,10 @@ const moduleRoutes = [
   {
     path: "/stats",
     route: statsRoutes,
+  },
+  {
+    path: "/rag",
+    route: ragRoutes,
   },
 ];
 

@@ -4,6 +4,12 @@ import { config } from "../config/env";
 class RedisService {
   private client: RedisClientType | null = null;
   private isConnected: boolean = false;
+  public getRawClient() {
+    return this.client;
+  }
+  public isConnectedCheck(): boolean {
+    return this.isConnected;
+  }
 
   async connect(): Promise<void> {
     try {
