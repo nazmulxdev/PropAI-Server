@@ -2,7 +2,7 @@ import { createLimiter } from "../middlewares/rateLimiter";
 
 export const globalLimiter = createLimiter({
   windowMs: 60 * 60 * 1000,
-  max: 100,
+  max: 30,
   key: "global",
 });
 

@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import AppError from "../shared/AppError";
 
 const notFoundError = (req: Request, res: Response, next: NextFunction) => {
+  if (req.path === "/favicon.ico") return next();
+
   next(
     new AppError(
       404,

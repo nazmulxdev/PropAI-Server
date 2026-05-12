@@ -28,35 +28,27 @@ class RedisService {
         },
       });
 
-      // 🔌 Events
       this.client.on("error", (error) => {
         console.error("❌ Redis Error:", error.message);
         this.isConnected = false;
       });
 
-      this.client.on("connect", () => {
-        console.log("🔌 Redis connecting...");
-      });
-
+      this.client.on("connect", () => console.log("🔌 Redis connecting..."));
       this.client.on("ready", () => {
         this.isConnected = true;
         console.log("✅ Redis ready");
       });
-
       this.client.on("reconnecting", () => {
         this.isConnected = false;
         console.log("🔄 Redis reconnecting...");
       });
-
       this.client.on("end", () => {
         this.isConnected = false;
         console.log("❌ Redis disconnected");
       });
 
-      // 🚀 Non-blocking connect
-      this.client.connect().catch((err) => {
-        console.error("❌ Redis initial connection failed:", err);
-      });
+      // ✅ Only change — await instead of fire-and-forget
+      await this.client.connect();
     } catch (error) {
       this.isConnected = false;
       console.error("❌ Redis setup error:", error);

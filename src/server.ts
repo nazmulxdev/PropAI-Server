@@ -12,7 +12,7 @@ let server: Server;
 const bootStrap = async () => {
   try {
     await prisma.$connect();
-    await redisService.connect().catch(console.error);
+    await redisService.connect();
     await seedAdmin();
 
     server = createServer(app);
@@ -23,6 +23,7 @@ const bootStrap = async () => {
     });
   } catch (error) {
     logger.error("Failed to start server", error);
+    process.exit(1); // ← if bootstrap itself fails, exit with error
   }
 };
 
@@ -30,12 +31,14 @@ const gracefulShutdown = (signal: string) => {
   logger.info(`⚠️ ${signal} received. Shutting down gracefully...`);
 
   if (server) {
-    server.close(() => {
+    server.close(async () => {
+      await prisma.$disconnect();
+      await redisService.disconnect();
       logger.info("💤 Server closed successfully.");
       process.exit(0);
     });
   } else {
-    process.exit(1);
+    process.exit(0); // ✅ no server yet = still a clean exit
   }
 };
 

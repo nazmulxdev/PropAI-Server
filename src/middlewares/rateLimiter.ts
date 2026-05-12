@@ -1,4 +1,5 @@
-import rateLimit from "express-rate-limit";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import RedisStore from "rate-limit-redis";
 import { redisService } from "../lib/redis";
 import type { Request } from "express";
@@ -21,14 +22,14 @@ export const createLimiter = (options: RateLimitOptions) => {
 
     keyGenerator: (req: Request) => {
       const user = (req as Request & { user?: { id: string } }).user;
-      return user?.id ?? req.ip ?? "anonymous";
+      return user?.id ?? ipKeyGenerator(req as any);
     },
 
     store: new RedisStore({
       sendCommand: (...args: string[]) => {
         const client = redisService.getRawClient();
         if (!client || !redisService.isConnectedCheck()) {
-          return Promise.resolve(null as unknown as string);
+          return Promise.reject(new Error("Redis not available"));
         }
 
         return client.sendCommand(args);
@@ -41,7 +42,7 @@ export const createLimiter = (options: RateLimitOptions) => {
 
     handler: (_req, res) => {
       AppResponse(res, {
-        message: "Too many requests. Please try again later.",
+        message: "Too many requests. Please try again later some times later.",
         statusCode: 429,
         success: false,
         data: null,
