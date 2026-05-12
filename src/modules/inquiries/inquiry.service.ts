@@ -11,6 +11,7 @@ import {
   inquiryDefaultInclude,
 } from "./inquiry.constant";
 import { QueryBuilder } from "../../utils/QueryBuilders";
+import { notificationService } from "../notifications/notification.service";
 
 // Buyer creates an inquiry + starts a conversation automatically
 const createInquiry = async (
@@ -47,23 +48,7 @@ const createInquiry = async (
     include: inquiryDefaultInclude,
   });
 
-  // Create conversation if not exists (or retrieve existing)
-  await prisma.conversation.upsert({
-    where: {
-      // Need a unique constraint on (buyerId, sellerId, propertyId)? Not in schema.
-      // We'll handle manually: find first, then create if missing.
-      id: "", // dummy, we'll use findFirst + create
-    },
-    create: {
-      buyerId,
-      sellerId: property.sellerId,
-      propertyId: payload.propertyId,
-    },
-    update: {},
-  });
-  // Since no unique constraint, we can't use upsert directly; we'll do it manually.
-  // I'll show a manual approach:
-
+  // Create conversation if it doesn't already exist
   const existingConv = await prisma.conversation.findFirst({
     where: {
       buyerId,
@@ -80,6 +65,14 @@ const createInquiry = async (
       },
     });
   }
+
+  await notificationService.createNotification({
+    userId: property.sellerId,
+    type: "NEW_INQUIRY",
+    title: "New inquiry received",
+    message: `Someone is interested in your property "${property.title}"`,
+    link: `/seller/inquiries/${inquiry.id}`,
+  });
 
   return inquiry;
 };

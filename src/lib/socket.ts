@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Server as HttpServer } from "http";
 import { Server, Socket } from "socket.io";
-import { auth } from "./auth.js";
+
 import { fromNodeHeaders } from "better-auth/node";
 import { prisma } from "./prisma.js";
+import { auth } from "./auth.js";
 
 let io: Server;
 
@@ -38,10 +39,18 @@ export const initSocket = (server: HttpServer) => {
     const user = (socket as any).user;
     console.log(`User connected: ${user.name} (${socket.id})`);
 
+    // Join user's private room for notifications
+    socket.join(`user_${user.id}`);
+
     // Join a conversation room
     socket.on("join_conversation", (conversationId: string) => {
       socket.join(`conversation_${conversationId}`);
       console.log(`User ${user.id} joined conversation: ${conversationId}`);
+    });
+
+    //  Leave a conversation
+    socket.on("leave_conversation", (conversationId: string) => {
+      socket.leave(`conversation_${conversationId}`);
     });
 
     // Handle sending messages
@@ -83,6 +92,34 @@ export const initSocket = (server: HttpServer) => {
         }
       },
     );
+
+    socket.on("typing_start", (conversationId: string) => {
+      socket.to(`conversation_${conversationId}`).emit("user_typing", {
+        userId: user.id,
+        name: user.name,
+      });
+    });
+
+    socket.on("typing_stop", (conversationId: string) => {
+      socket.to(`conversation_${conversationId}`).emit("user_stop_typing", {
+        userId: user.id,
+      });
+    });
+
+    socket.on("mark_read", async (conversationId: string) => {
+      try {
+        await prisma.message.updateMany({
+          where: {
+            conversationId,
+            read: false,
+            senderId: { not: user.id },
+          },
+          data: { read: true },
+        });
+      } catch (error) {
+        console.error("Error marking read:", error);
+      }
+    });
 
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${user.id}`);

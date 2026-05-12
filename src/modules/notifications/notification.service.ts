@@ -10,6 +10,7 @@ import {
   notificationDefaultInclude,
 } from "./notification.constant";
 import { QueryBuilder } from "../../utils/QueryBuilders";
+import { getIO } from "../../lib/socket";
 
 // Get paginated notifications for a user
 const getNotifications = async (userId: string, query: IQueryParams) => {
@@ -72,7 +73,6 @@ const deleteNotification = async (notificationId: string, userId: string) => {
   return { message: "Notification deleted" };
 };
 
-// Utility to create a notification (called from other services / jobs)
 const createNotification = async (data: {
   userId: string;
   type: string;
@@ -80,7 +80,24 @@ const createNotification = async (data: {
   message: string;
   link?: string;
 }) => {
-  return prisma.notification.create({ data });
+  const notification = await prisma.notification.create({ data });
+
+  // Emit real‑time event to the target user
+  try {
+    const io = getIO();
+    io.to(`user_${data.userId}`).emit("notification", {
+      id: notification.id,
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      link: notification.link,
+      createdAt: notification.createdAt,
+    });
+  } catch (error) {
+    console.warn("Failed to emit real-time notification:", error);
+  }
+
+  return notification;
 };
 
 export const notificationService = {
