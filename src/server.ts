@@ -1,25 +1,37 @@
-import { Server } from "http";
+import { createServer, Server } from "http";
 import app from "./app.js";
+import { logger } from "./utils/logger.js";
+import { redisService } from "./lib/redis.js";
+import { prisma } from "./lib/prisma.js";
+import { seedAdmin } from "./utils/seed.js";
+import { initSocket } from "./lib/socket.js";
 
 const port = 5000;
 let server: Server;
 
 const bootStrap = async () => {
   try {
-    server = app.listen(port, () => {
-      console.log("This server is running on the port :", port);
+    await prisma.$connect();
+    await redisService.connect().catch(console.error);
+    await seedAdmin();
+
+    server = createServer(app);
+    initSocket(server);
+
+    server.listen(port, () => {
+      logger.info(`This server is running on the port: ${port}`);
     });
   } catch (error) {
-    console.error(error);
+    logger.error("Failed to start server", error);
   }
 };
 
 const gracefulShutdown = (signal: string) => {
-  console.log(`⚠️ ${signal} received. Shutting down gracefully...`);
+  logger.info(`⚠️ ${signal} received. Shutting down gracefully...`);
 
   if (server) {
     server.close(() => {
-      console.log("💤 Server closed successfully.");
+      logger.info("💤 Server closed successfully.");
       process.exit(0);
     });
   } else {
@@ -33,13 +45,13 @@ process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
 // Uncaught Exception
 process.on("uncaughtException", (error: unknown) => {
-  console.error("❌ Uncaught Exception:", error);
+  logger.error("❌ Uncaught Exception:", error);
   gracefulShutdown("uncaughtException");
 });
 
 // Unhandled Rejection
 process.on("unhandledRejection", (reason: unknown) => {
-  console.error("❌ Unhandled Rejection:", reason);
+  logger.error("❌ Unhandled Rejection:", reason);
   gracefulShutdown("unhandledRejection");
 });
 

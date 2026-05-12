@@ -1,0 +1,936 @@
+PropAI — Real Estate Platform
+CLIENT-SIDE PRODUCT REQUIREMENTS DOCUMENT
+Version 1.0 | AI-Powered Full Stack Contest Project
+
+
+1. Project Overview
+PropAI is an AI-powered real estate platform designed to solve the fundamental problems of property discovery, listing management, and market intelligence in Bangladesh and beyond. The platform brings together property buyers, sellers/agents, and platform administrators under one unified, intelligent system — powered by real AI APIs and modern web engineering.
+
+Problem Statement:
+Finding the right property in Bangladesh is a tedious, manual, and time-consuming process.
+Sellers write poor, unoptimized property descriptions that fail to attract buyers.
+Buyers receive no personalized property suggestions — everything is generic.
+Agents and admins have no intelligent data insights, only raw numbers.
+There is no AI-powered assistant to answer buyer questions from real property data.
+
+PropAI Solution:
+RAG-based AI Chatbot that answers property queries from actual database content.
+AI Content Generator that writes professional property descriptions from basic inputs.
+AI Data Analyzer that converts dashboard charts into plain-language business insights.
+AI Smart Recommendations that suggest properties based on user behavior and preferences.
+
+
+2. Frontend Technology Stack
+Technology
+Purpose
+Version/Notes
+Next.js (App Router)
+Core framework with SSR, SSG, streaming
+v14+
+TypeScript
+Type safety throughout the entire codebase
+Strict mode enabled
+Tailwind CSS
+Utility-first styling framework
+v3+
+ShadCN/UI
+Accessible, consistent component library
+Latest
+Zustand
+Global client-side state management
+v4+
+React Hook Form
+Form state management with performance focus
+v7+
+Zod
+Schema validation for all forms and API responses
+v3+
+TanStack Query
+Server state, caching, background refetching
+v5+
+Socket.io Client
+Real-time chat and live notifications
+v4+
+Framer Motion
+Animations, transitions, interactive elements
+v11+
+Recharts
+Charts and data visualizations in dashboard
+v2+
+Axios
+HTTP client with interceptors for API calls
+v1+
+Better Auth
+Authentication (email/password + Google) 
+v4+
+next-themes
+Light/Dark mode with system preference support
+Latest
+Lucide React
+Icon library — consistent across all components
+Latest
+
+
+
+3. Global Design System
+3.1 Color Palette
+Maximum 3 primary colors plus one neutral palette. All colors must maintain WCAG AA contrast ratio in both light and dark mode.
+Token
+Light Mode
+Dark Mode
+Usage
+Primary
+#1A56A0
+#3B82F6
+Buttons, links, active states, headings
+Secondary
+#0D9488
+#14B8A6
+Badges, highlights, success states, tags
+Accent / CTA
+#F97316
+#FB923C
+Call to action buttons, urgent badges, price highlights
+Background
+#FFFFFF
+#0F172A
+Page background
+Surface
+#F8FAFC
+#1E293B
+Cards, sidebar, modals, input backgrounds
+Border
+#E2E8F0
+#334155
+Card borders, dividers, input borders
+Text Primary
+#0F172A
+#F1F5F9
+Main text content
+Text Secondary
+#64748B
+#94A3B8
+Captions, metadata, placeholder text
+Destructive
+#EF4444
+#F87171
+Error states, delete actions, alerts
+Success
+#22C55E
+#4ADE80
+Success toasts, confirmed states
+
+
+3.2 Typography
+Element
+Font Size
+Weight
+Usage
+H1 — Page Title
+36px / 2.25rem
+800 ExtraBold
+Hero headings, page titles
+H2 — Section Title
+30px / 1.875rem
+700 Bold
+Section headings
+H3 — Card Title
+24px / 1.5rem
+600 SemiBold
+Card headings, modal titles
+H4 — Subsection
+20px / 1.25rem
+600 SemiBold
+Subsection labels
+Body Large
+18px / 1.125rem
+400 Regular
+Hero subtext, featured descriptions
+Body
+16px / 1rem
+400 Regular
+General paragraph text
+Body Small
+14px / 0.875rem
+400 Regular
+Meta information, captions
+Caption
+12px / 0.75rem
+400 Regular
+Timestamps, helper text
+Label
+14px / 0.875rem
+500 Medium
+Form labels, table headers
+
+Font Family: Inter (primary), system-ui (fallback). Load via next/font for optimization.
+
+3.3 Spacing & Layout
+Base spacing unit: 4px (Tailwind default scale).
+Consistent padding on all cards: 24px (p-6 in Tailwind).
+Section padding on landing page: 80px vertical (py-20).
+Max container width: 1280px (max-w-7xl), centered with auto horizontal margins.
+Grid gap for cards: 24px (gap-6).
+
+3.4 Component Standards
+All cards: identical width in grid, fixed min-height of 360px, border-radius 12px (rounded-xl), consistent shadow: shadow-md.
+All buttons: border-radius 8px (rounded-lg), minimum 44px height for accessibility.
+All input fields: border-radius 8px, 48px height, consistent focus ring using primary color.
+All modals: max-width 600px, backdrop blur, border-radius 16px.
+All skeleton loaders must match the exact dimensions of the content they replace.
+All form fields must show: label, input, validation error below, success state icon.
+
+3.5 Light & Dark Mode
+Dark mode toggle in navbar on all pages.
+Persisted via localStorage and synced with system preference on first visit.
+All components must be tested and verified in both modes. No hardcoded colors.
+Use CSS variables via Tailwind CSS dark: modifier throughout.
+
+
+4. Landing Page — Public Homepage (/)
+4.1 Navbar
+The navbar is the primary navigation and must be implemented with care.
+Requirement
+Detail
+Position
+Fixed at top, full viewport width, z-index 50
+Background
+White/dark surface with backdrop blur when scrolled (bg-white/80 dark:bg-slate-900/80 backdrop-blur-md)
+Logo
+PropAI logo with icon left-aligned. Clicking navigates to /
+Logged Out Routes (4 minimum)
+Home (/), Explore (/explore), Blog (/blog), About (/about), Contact (/contact)
+Logged In Routes (6 minimum)
+Home, Explore, Blog, About, Dashboard (/dashboard), Messages — plus profile dropdown
+Advanced Menu
+Profile dropdown with: avatar, name, email, Dashboard link, Profile Settings, Logout button
+Dark Mode Toggle
+Sun/Moon icon button in navbar, always visible
+Mobile
+Hamburger menu icon, slide-in mobile drawer with all links
+CTA Button
+'List Property' button in accent color visible when logged out
+
+
+4.2 Hero Section
+Height: 65% of viewport (65vh). Full-width, visually striking.
+Background: High-quality property image with a dark overlay gradient.
+Heading (H1): 'Find Your Perfect Property with AI' — animated fade-in on load.
+Subheading: Descriptive one-liner about the platform.
+Search Bar: Centered, prominent. Fields: Location (text input), Property Type (dropdown: Apartment/House/Land/Commercial/Office), Price Range (dropdown). 'Search' button in accent color.
+Stats Row: 4 animated counters below search — Total Listings, Cities, Verified Agents, Happy Buyers. Numbers animate on scroll into view.
+Clear visual flow arrow/indicator pointing to next section.
+
+4.3 Sections — Minimum 8 Required
+Each section must have real data from the API and must not contain any placeholder or lorem ipsum content.
+#
+Section Name
+Content Description
+1
+Featured Properties
+8 property cards in 4-per-row grid. Same card height/width. Skeleton loader on fetch. Title, image, price, location, bedrooms, bathrooms, 'View Details' button.
+2
+Property Categories
+6 category cards with icon + name + count: Apartment, House, Land, Villa, Commercial, Office. Clicking navigates to /explore?type={category}.
+3
+How It Works
+3-step visual flow: Search Property > Connect with Agent > Move In. Icons + short descriptions.
+4
+AI Features Highlight
+3 feature cards: RAG Chatbot, AI Description Generator, AI Smart Recommendations. Each with icon, title, 2-line description.
+5
+Statistics / Platform Numbers
+4 animated stat cards: Total Properties, Active Agents, Cities Covered, Satisfied Buyers. Numbers pull from backend.
+6
+Testimonials
+Slider/carousel with 6 buyer/seller testimonials. Avatar, name, role, rating stars, quote.
+7
+Featured Agents
+4 agent profile cards. Avatar, name, agency, listings count, rating, 'View Profile' button.
+8
+Latest Blog Posts
+3 blog post cards. Cover image, title, date, author, short excerpt, 'Read More' link.
+9
+Newsletter Signup
+Email input + 'Subscribe' button. Success state shows confirmation message. Connected to backend.
+10
+FAQ (Accordion)
+8 common questions with expandable answers. Topics: pricing, listing, AI features, account.
+
+
+4.4 Footer
+Full-width, dark background (even in light mode — deep navy #0F172A).
+4-column layout: Brand column (logo, tagline, social links), Quick Links, Property Types, Contact Info.
+Social links: Facebook, LinkedIn, Twitter/X, Instagram, YouTube — all open in new tab.
+Contact info: email, phone number, Dhaka Bangladesh address.
+Bottom bar: Copyright, Privacy Policy link (/privacy), Terms of Service link (/terms).
+All links must be functional — no dead links anywhere in the footer.
+
+
+5. Explore / Listing Page (/explore)
+5.1 Page Layout
+The Explore page is the primary property discovery interface. It must be fully functional with real data from the backend.
+5.2 Search & Filtering
+Filter Field
+Type
+Options / Behavior
+Search Query
+Text input
+Debounced 400ms — searches title, location, description. Updates URL query params.
+Property Type
+Dropdown (select)
+All, Apartment, House, Villa, Land, Commercial, Office
+Location / City
+Dropdown (select)
+All Cities, Dhaka, Chittagong, Sylhet, Rajshahi, Khulna, Comilla, Gazipur
+Price Range
+Dual range slider
+Min and Max price. Values displayed above slider. Updates on release.
+Bedrooms
+Dropdown (select)
+Any, 1+, 2+, 3+, 4+, 5+
+Listing Status
+Radio / Toggle
+For Sale, For Rent, All
+Rating
+Star filter
+Any, 3+ Stars, 4+ Stars, 5 Stars
+
+
+5.3 Sorting Options
+Sort by: Newest First (default), Oldest First, Price: Low to High, Price: High to Low, Most Viewed, Highest Rated.
+Sort dropdown in top-right of results area.
+Sort state reflected in URL params for shareable URLs.
+
+5.4 Results Display
+Results count shown: 'Showing 24 of 156 properties'.
+Grid view: 4 columns desktop, 2 columns tablet, 1 column mobile.
+Card skeleton loaders (4 per row) shown during initial load and filter changes.
+Each card: Cover image, property type badge, title, location with map pin icon, price (bold), bedrooms/bathrooms/sqft row, agent avatar + name, rating stars, 'View Details' button.
+Cards have hover state: slight lift (transform translateY -4px), shadow deepens.
+'Save' (bookmark) icon on each card — toggles saved state instantly (optimistic UI).
+
+5.5 Pagination
+Page-based pagination at bottom. Previous / Next buttons + page numbers.
+Show: First, ..., current-1, current, current+1, ..., Last.
+Default: 12 properties per page. Option to switch to 24 or 48.
+Scroll to top of results on page change.
+Current page stored in URL: /explore?page=2.
+
+
+6. Property Detail Page (/properties/[id])
+6.1 Access & SEO
+Publicly accessible — no login required.
+Server-side rendered for SEO. Meta tags: title, description, og:image set from property data.
+Breadcrumb navigation: Home > Explore > {Property Title}.
+
+6.2 Media Gallery
+Primary image displayed prominently at top. Minimum 5 images per property.
+Thumbnail strip below main image — click to switch main view.
+Lightbox modal on click — arrow navigation, keyboard accessible, ESC to close.
+Image counter: '2 / 5' overlay on main image.
+
+6.3 Property Information Sections
+Section
+Content Details
+Header
+Property title (H1), Price (large, accent color), Location (with city), Status badge (For Sale / For Rent), Posted date, View count
+Overview / Description
+Full AI-generated or manually written property description. Formatted paragraph text. 'Show More / Less' if over 300 words.
+Key Specifications
+Grid of spec badges: Bedrooms, Bathrooms, Total Area (sqft), Floor Number, Parking Spaces, Furnishing Status, Year Built, Property Type
+Amenities
+Icon + label chips: WiFi, Generator, Elevator, Security, Gym, Swimming Pool, Garden — only showing what applies
+Location Map
+Embedded Google Maps iframe centered on property coordinates. Address shown below.
+Agent / Seller Info
+Agent card: avatar, name, agency, phone, email, member since date, total listings count, average rating. 'Send Inquiry' button.
+Reviews & Ratings
+Average star rating (large), breakdown bar chart (5-1 stars), list of individual reviews with avatar, name, date, rating, comment. 'Write a Review' form for logged-in users.
+Related Properties
+4 property cards (same style as explore page) with similar type/location. Labeled 'Similar Properties You Might Like'.
+AI Recommendations
+Section: 'Based on your browsing, you might also like' — 4 AI-recommended property cards. Only shown to logged-in buyers.
+
+
+
+7. Authentication System (Better Auth)
+
+Better Auth handles all authentication directly within Next.js. There is no Express involvement in login, registration, or token management. The Express backend only verifies the session token forwarded by the Next.js server or client. 
+7.1 Registration Page (/auth/register)
+Clean, centered card layout. All fields validated with Zod + React Hook Form. Uses Better Auth client method authClient.signUp.email(). 
+Field
+Validation Rules
+Full Name
+Required, min 2 characters, max 80 characters
+Email Address
+Required, valid email format, unique (checked via API)
+Password
+Required, min 8 chars, must contain uppercase, lowercase, number
+Confirm Password
+Must match password field
+Role
+Dropdown: Buyer or Seller/Agent — required (passed as additionalFields) 
+Phone Number
+Optional, Bangladeshi phone format validation (+880 or 01X)
+Terms Checkbox
+Must be checked — links to /terms
+
+On submit: call authClient.signUp.email({ email, password, name, role, phone }).
+Success: redirect to /dashboard/{role}/overview with welcome toast.
+Error states: inline error messages below each field in red.
+Loading: spinner inside submit button, button disabled.
+Social Login: "Continue with Google" button uses authClient.signIn.social({ provider: 'google' }).
+If email verification is enabled, a verification email is sent (custom logic via emailVerification.sendVerificationEmail).
+Link to login: "Already have an account? Log in".
+7.2 Login Page (/auth/login)
+Fields: Email, Password. Both required.
+Show/Hide Password toggle.
+"Forgot Password?" link (leads to /auth/forgot-password).
+Demo Login Buttons:
+"Demo Buyer" – calls authClient.signIn.email({ email: 'demo@buyer.com', password: 'Buyer@123' })
+"Demo Admin" – calls authClient.signIn.email({ email: 'admin@propai.com', password: 'Admin@123' })
+Social Login: Google OAuth via authClient.signIn.social({ provider: 'google' }).
+On success: redirect to /dashboard/{role}/overview.
+Error handling: "Invalid credentials" toast on wrong login.
+
+7.3 Session Management
+The session is stored as an httpOnly cookie (better-auth.session_token).
+All API calls from Next.js Server Components to the Express backend must forward the cookie header manually:
+ts
+// Example: Next.js Route Handler calling Express
+const sessionToken = cookies().get('better-auth.session_token')?.value;
+const res = await fetch(`${EXPRESS_API_URL}/api/properties/saved`, {
+  headers: {
+    Cookie: `better-auth.session_token=${sessionToken}`,
+  },
+});
+On the client side, Axios is configured with withCredentials: true so cookies are automatically sent to Express.
+The Express authenticate middleware reads the cookie (or Authorization header) and validates the session via Prisma against the session table.
+No JWTs, no refresh tokens.
+
+7.4 Forgot Password Flow
+Step 1: Enter email → Better Auth sends a reset link (via emailAndPassword.sendResetPassword).
+Step 2: User clicks link → redirected to /auth/reset-password?token=xxx.
+Step 3: New password + confirm → call authClient.resetPassword({ token, newPassword }). On success, redirect to login.
+7.5 Protected Routes
+All dashboard pages are protected using a middleware that checks the session via auth.api.getSession() from better-auth/next-js in server components, or using useSession() in client components.
+If no session, redirect to /auth/login.
+Role-based access: if session.user.role doesn't match the required role, redirect to appropriate dashboard or show 403.
+
+
+
+8. Buyer Dashboard (/dashboard/buyer/*)
+8.1 Dashboard Layout
+Persistent left sidebar on desktop (240px wide), collapsible on mobile (slide-in drawer).
+Sidebar: PropAI logo at top, navigation links, user avatar + name + email at bottom.
+Top navbar: Page title, notification bell (with count badge), profile dropdown.
+Main content area: padded, scrollable, white/surface background.
+
+8.2 Sidebar Navigation (Buyer — 5 items minimum)
+Menu Item
+Route
+Icon
+Overview
+/dashboard/buyer/overview
+LayoutDashboard
+Saved Properties
+/dashboard/buyer/saved
+Bookmark
+My Inquiries
+/dashboard/buyer/inquiries
+MessageSquare
+AI Recommendations
+/dashboard/buyer/recommendations
+Sparkles
+Messages
+/dashboard/buyer/messages
+MessageCircle
+Notifications
+/dashboard/buyer/notifications
+Bell
+My Profile
+/dashboard/buyer/profile
+User
+
+
+8.3 Overview Page
+4 stat cards in a row: Saved Properties (count), Active Inquiries (count), Messages Unread (count), Properties Viewed (count).
+Each card: icon, label, large number, small trend indicator (e.g., +3 this week).
+Recent Activity Feed: last 10 actions with timestamp, icon, and description.
+Quick Access: 3 recently viewed property cards.
+
+8.4 Saved Properties Page
+Grid of saved property cards (same as explore cards). 4 per row desktop.
+'Remove from Saved' button on each card — optimistic UI update.
+Empty state: illustration + 'No saved properties yet. Browse properties to save some.' with link to /explore.
+Search within saved properties: live filter by title.
+
+8.5 My Inquiries Page
+Table view: columns: Property Name (with thumbnail), Seller/Agent Name, Date Sent, Status (Pending/Replied/Closed), Action (View Thread).
+Filtering: by status (All, Pending, Replied, Closed).
+Pagination: 10 per page.
+'View Thread' opens a message thread modal or navigates to messages page.
+
+8.6 AI Recommendations Page
+This is a core AI feature. See Section 11 for full technical details.
+Header: 'Recommended For You' — AI-generated personalized property suggestions.
+Sub-header: 'Based on your search history and preferences'.
+8 property cards in a 4-per-row grid with the same styling as explore cards.
+Loading: skeleton cards shown during AI API call.
+Error state: 'Unable to load recommendations. Please try again.' with a retry button.
+Empty state (no history yet): 'Browse some properties first, and we'll personalize recommendations for you.'
+'Refresh Recommendations' button to re-trigger AI analysis.
+
+8.7 Messages Page (Real-time Chat)
+See Section 12 for full real-time messaging specification.
+Left panel: list of conversations (with seller/agent name, last message preview, timestamp, unread badge).
+Right panel: active chat thread with messages.
+Real-time: new messages appear instantly without refresh.
+Each message: avatar, name, message text, timestamp, read indicator.
+
+8.8 Profile Page
+Editable form fields: Full Name, Phone Number, Profile Photo (upload), Bio, Preferred Locations (multi-select tags), Preferred Property Types (checkboxes), Price Range Preference (slider).
+'Save Changes' button. Success toast on save.
+Change password section: Current password, New password, Confirm new password.
+Danger zone: 'Delete Account' button — requires confirmation modal.
+
+
+9. Seller Dashboard (/dashboard/seller/*)
+9.1 Sidebar Navigation (Seller — 6 items)
+Menu Item
+Route
+Icon
+Overview
+/dashboard/seller/overview
+LayoutDashboard
+My Listings
+/dashboard/seller/listings
+Building
+Add Property
+/dashboard/seller/listings/new
+PlusCircle
+Inquiries
+/dashboard/seller/inquiries
+Inbox
+Analytics
+/dashboard/seller/analytics
+BarChart2
+Messages
+/dashboard/seller/messages
+MessageCircle
+Profile
+/dashboard/seller/profile
+User
+
+
+9.2 Overview Page
+4 stat cards: Total Listings (count), Total Views (sum across all listings), Active Inquiries (count), Profile Views (count).
+Recent inquiries list: last 5 inquiries with buyer name, property, and date.
+Top performing listing card: highest-viewed property with stats.
+
+9.3 My Listings Page
+Table: columns: Image thumbnail, Title, Type, Price, Location, Status (Active/Inactive/Pending), Views, Inquiries, Actions.
+Actions: Edit (pencil icon), Deactivate/Activate toggle, Delete (trash icon with confirmation modal).
+Filtering: by status (All, Active, Inactive, Pending Approval).
+Pagination: 10 per page.
+'Add New Property' button — navigates to /dashboard/seller/listings/new.
+
+9.4 Add / Edit Property Page
+This page contains the AI Content Generator feature. Full form with all validation.
+Form Section
+Fields
+Basic Info
+Title (text), Property Type (dropdown), Listing Status (For Sale / For Rent)
+Location
+City (dropdown), Area/Neighborhood (text), Full Address (textarea), Latitude/Longitude (optional)
+Property Details
+Price (number, BDT), Bedrooms (number), Bathrooms (number), Total Area sqft (number), Floor Number (number), Year Built (year)
+Features
+Parking Spaces (number), Furnishing Status (Furnished/Semi/Unfurnished), Amenities (checkbox grid: WiFi, Elevator, Security, Gym, Pool, Garden, Generator)
+Images
+Multi-image upload (min 3, max 15). Drag-and-drop + file picker. Preview thumbnails. Reorder by drag. Delete individual images.
+Description
+Rich textarea for description. AI Content Generator button below — see Section 11.2.
+Tags
+Multi-tag input for keywords. AI Auto-Tag button — see Section 11.5.
+
+All fields validated with Zod. Inline error messages.
+'Save as Draft' button and 'Submit for Approval' button.
+On submit: success toast, redirect to /dashboard/seller/listings.
+
+9.5 Analytics Page
+This page contains the AI Data Analyzer feature. See Section 11.3 for full AI specification.
+Date range selector: Last 7 days, Last 30 days, Last 3 months, Custom range.
+Chart 1 (Line): Views over time per listing — selectable listing from dropdown.
+Chart 2 (Bar): Inquiries per listing — shows which listings get most interest.
+Chart 3 (Pie): Property type distribution among seller's own listings.
+All charts use Recharts. Data fetched from backend with TanStack Query.
+AI Insight Cards: below charts, 3-4 natural language insights generated by AI Data Analyzer. Loading skeleton shown while AI processes. Each insight card: light bulb icon, heading, 1-2 sentence insight text.
+
+
+10. Admin Dashboard (/dashboard/admin/*)
+10.1 Sidebar Navigation (Admin — 7 items)
+Menu Item
+Route
+Icon
+Overview
+/dashboard/admin/overview
+LayoutDashboard
+Manage Listings
+/dashboard/admin/listings
+Building2
+Manage Users
+/dashboard/admin/users
+Users
+Analytics
+/dashboard/admin/analytics
+TrendingUp
+Blog Management
+/dashboard/admin/blogs
+FileText
+Reports
+/dashboard/admin/reports
+AlertTriangle
+Notifications
+/dashboard/admin/notifications
+Bell
+Profile
+/dashboard/admin/profile
+User
+
+
+10.2 Overview Page
+5 stat cards: Total Users, Total Listings, Pending Approvals, New Registrations (this week), Total Inquiries.
+Charts row: Line chart — new users over time (last 30 days). Bar chart — new listings per day.
+Pending approvals quick list: 5 most recent listings awaiting review with 'Approve' and 'Reject' buttons.
+
+10.3 Manage Listings Page
+Full table: Property image, Title, Type, Seller Name, City, Price, Status, Date Submitted, Actions.
+Status: Active, Inactive, Pending Approval, Rejected.
+Actions: View, Approve (green), Reject (red with reason modal), Edit, Delete.
+Filtering: Status, Type, City, Date range.
+Pagination: 15 per page.
+Bulk actions: select multiple > Bulk Approve / Bulk Delete.
+
+10.4 Manage Users Page
+Table: Avatar, Name, Email, Role, Status (Active/Banned), Listings Count, Join Date, Actions.
+Actions: View Profile, Ban User (with reason modal), Unban User, Change Role, Delete Account.
+Filtering: by Role (All, Buyer, Seller, Admin), Status (Active, Banned).
+Search: by name or email.
+Pagination: 15 per page.
+
+10.5 Analytics Page (Admin)
+Contains AI Data Analyzer for platform-wide insights. See Section 11.3.
+Chart 1 (Line): New user registrations over time.
+Chart 2 (Bar): Listings per city — which cities have most inventory.
+Chart 3 (Pie): Property type breakdown across entire platform.
+Chart 4 (Bar): Inquiries per day — platform engagement.
+AI Insight Cards: 4-5 platform-level insights from AI Data Analyzer.
+
+10.6 Blog Management Page
+Table: Cover image thumbnail, Title, Author, Status (Published/Draft), Views, Date, Actions.
+Actions: Edit, Publish/Unpublish, Delete.
+'Create New Blog' button — opens blog editor.
+Blog Editor: Title, Cover image upload, Content (rich textarea), Tags, Status. 'AI Write Blog' button — see Section 11.1.
+Filtering by status. Pagination.
+
+10.7 Reports Page
+Table: Reported item (property or user), Reporter name, Reason, Date, Status (Pending/Reviewed), Actions.
+Actions: View Item, Mark Reviewed, Remove Reported Content, Dismiss Report.
+Filtering by type and status.
+
+
+11. AI Features — Full Specification
+All AI features use real API calls to Anthropic Claude (claude-sonnet-4-20250514) or Google Gemini. No mock/fake responses are acceptable. Every feature must handle loading, error, and success states explicitly.
+
+11.1 AI Content Generator — Property Description & Blog
+11.1.1 Property Description Generator
+Location: Seller dashboard > Add/Edit Property form > below Description textarea.
+Trigger: 'Generate with AI' button with sparkle icon.
+How it works:
+System collects all filled form data: property type, location, bedrooms, bathrooms, area sqft, amenities, price range, floor.
+Sends structured prompt to AI: 'Generate a professional, persuasive property listing description for a {type} in {location}...'
+AI returns: description paragraph (200-300 words), 5 key highlights as bullet points, SEO-friendly meta description (150 chars).
+Result populates the description textarea and highlights input. User can edit freely after.
+UI States:
+Default: 'Generate with AI' button, enabled only when at least 3 form fields are filled.
+Loading: button shows spinner + 'Generating...' text, button disabled, textarea shows subtle pulse.
+Success: textarea fills with content, success toast 'Description generated successfully!', button returns to default.
+Error: error toast 'Failed to generate. Please try again.', button returns to default, textarea unchanged.
+
+11.1.2 Blog Post Generator (Admin)
+Location: Admin dashboard > Blog Management > Blog Editor.
+Trigger: 'AI Write Blog' button.
+How it works:
+Admin enters blog title and optionally 2-3 keywords.
+AI generates: full blog post (600-800 words), intro paragraph, 3-4 subheadings with content, conclusion, 5 SEO tags.
+Structured JSON output parsed and populated into editor fields.
+
+11.2 AI Smart Recommendations
+Location: Buyer dashboard > AI Recommendations page, and Property detail page 'You might also like' section.
+How it works:
+Frontend collects user's browsing data: last 10 viewed property IDs, saved property IDs, search query history, location preferences from profile.
+Sends this context to backend recommendation endpoint.
+Backend calls AI API with: user history summary + catalog of available properties (limited to 50 most recent).
+AI returns structured JSON: array of 8 recommended property IDs with reasoning strings.
+Frontend fetches full property data for those IDs and displays as cards.
+UI States:
+Loading: 8 skeleton cards in grid.
+Success: 8 property cards with 'Why recommended' tooltip on hover.
+Error: error card with retry button.
+No history: prompt card encouraging user to browse more properties.
+
+11.3 AI Data Analyzer
+Location: Seller Analytics page, Admin Analytics page.
+How it works:
+After charts render, a 'Get AI Insights' button is visible.
+On click: frontend collects all chart data (views by day, inquiries by listing, type breakdown).
+Sends to backend AI endpoint with prompt: 'Analyze this real estate data and return 4 specific, actionable insights.'
+AI returns JSON array of insight objects: { title: string, insight: string, type: 'positive' | 'warning' | 'neutral' }.
+Frontend renders insight cards with color-coding: green for positive, orange for warning, blue for neutral.
+UI States:
+Button shows 'Analyze with AI', sparkle icon.
+Loading: button spins, insight area shows 4 skeleton cards.
+Success: insight cards appear with animation.
+Error: single error card with retry.
+
+11.4 RAG AI Chatbot
+Location: Floating chat widget, bottom-right corner — available on ALL pages.
+What is RAG? Retrieval-Augmented Generation: before responding, the AI retrieves relevant property data from the database, then uses it to answer the question accurately.
+How it works:
+The user opens a chat widget (click floating button).
+The user types a question, e.g. 'Show me 2 bedroom apartments in Dhaka under 20,000 BDT.'
+Frontend sends a message to the backend /api/chat/message endpoint.
+Backend: (1) extracts keywords and intent from user message, (2) queries PostgreSQL for matching properties, (3) formats top 5 matching properties as context, (4) sends to AI API with system prompt: 'You are PropAI assistant. Answer only using the provided property data context. Be helpful and specific.'
+AI responds with natural language answers referencing real properties.
+Frontend renders response with message bubbles.
+Conversation context maintained for multi-turn: user can ask follow-up questions.
+UI Features:
+Floating button: PropAI logo icon, pulse animation on first visit.
+Chat window: 360px wide, 480px tall. Header with title and close button.
+Message bubbles: user messages right-aligned (primary color), AI messages left-aligned (surface color).
+Typing indicator: animated dots while AI is responding.
+Quick suggestion chips on empty state: 'Apartments in Dhaka', 'Properties under 50 lakh', 'Houses for rent in Chittagong'.
+Error: 'Sorry, I could not process that. Please try again.' message bubble.
+
+11.5 AI Auto-Tagging (Bonus Feature)
+Location: Seller > Add Property form > Tags input field.
+How it works: user clicks 'Auto-Tag' button. AI reads the title and description and returns 5-8 relevant keyword tags as a JSON array. Tags are added to the tags input field automatically.
+
+
+12. Real-Time Features
+12.1 Real-Time Messaging (Socket.io)
+Technology: Socket.io client on frontend, Socket.io server on backend.
+Connection: established on login, disconnected on logout.
+Rooms: each conversation has a unique room ID.
+Events emitted: message:send (user sends message), message:read (user reads message).
+Events received: message:receive (new message), user:typing (typing indicator), notification:new (new notification).
+Messages persist in PostgreSQL. On conversation open, last 50 messages loaded via REST API, then real-time takes over.
+
+12.2 Live Notifications
+Bell icon in dashboard navbar with unread count badge.
+Dropdown panel (max 10 recent notifications) on bell click.
+'View All' link navigates to /dashboard/{role}/notifications.
+Notification types: New inquiry received (seller), Seller replied to inquiry (buyer), Listing approved by admin (seller), New message received (both), Property matching preferences found (buyer).
+Real-time delivery via Socket.io room event notification:new.
+Unread notifications shown with blue dot. 'Mark all as read' button.
+
+
+13. Additional Pages
+Page
+Route
+Content Requirements
+About
+/about
+Company story, mission statement, team members (4-6 with photo, name, role), platform values, stats, 'Join PropAI' CTA.
+Contact
+/contact
+Contact form (Name, Email, Subject, Message) with Zod validation. Success state. Office address, phone, email displayed. Google Maps embed of Dhaka office.
+Blog Listing
+/blog
+Grid of blog post cards — 3 per row. Cover image, title, excerpt, author, date, tags, 'Read More' link. Search bar. Category filter tabs.
+Blog Detail
+/blog/[slug]
+Full blog post: cover image, title, author + date, content, tags, related posts (3 cards), newsletter signup at bottom.
+FAQ
+/faq
+Accordion list of 15+ questions. Grouped by category: General, Properties, Accounts, AI Features, Payments.
+Privacy Policy
+/privacy
+Full privacy policy text with sections: Data Collection, Usage, Storage, User Rights, Contact.
+Terms of Service
+/terms
+Full terms of service with sections: Acceptance, Usage Rules, Listing Rules, Intellectual Property, Disclaimers.
+
+
+
+14. Frontend Performance & Production Requirements
+14.1 Next.js Advanced Features (Minimum 3 Required)
+Feature
+Where Applied
+Implementation
+Server Components
+Explore page listing, Property detail page, Blog listing, Homepage featured properties
+All data-fetching components are async Server Components. No useEffect for initial data load.
+Suspense + Streaming
+Dashboard overview, Property detail sidebar, Recommendation section
+Each section wrapped in <Suspense fallback={<Skeleton/>}>. Page streams progressively.
+Optimistic UI
+Save/unsave property, Like review, Send message, Mark notification read
+useMutation with onMutate callback updates UI instantly. onError rolls back.
+Image Optimization
+All property images, agent avatars, blog covers
+next/image with proper width/height, sizes attribute, lazy loading.
+Code Splitting
+Dashboard sections, Chat widget, AI features
+Dynamic imports with next/dynamic and loading fallback for heavy components.
+
+
+14.2 Performance Checklist
+All images: next/image with explicit width/height. WebP format preferred.
+Fonts: next/font with subset: ['latin'] and display: swap.
+Third-party scripts (Maps embed): loaded with next/script strategy='lazyOnload'.
+Bundle analysis: run next build and check bundle sizes. No single chunk > 200kb.
+Core Web Vitals target: LCP < 2.5s, FID < 100ms, CLS < 0.1.
+
+
+15. Responsiveness Specification
+Breakpoint
+Width
+Layout Changes
+Mobile (sm)
+< 640px
+Single column. Hamburger menu. Cards stack vertically. The sidebar becomes the bottom sheet or full-screen drawer.
+Tablet (md)
+640px–1024px
+2 columns for cards. Sidebar collapses to icon-only mode. Filters in a collapsible panel.
+Desktop (lg+)
+> 1024px
+4 columns for cards. Full sidebar visible. All filters shown inline.
+
+Every page must be manually tested at 375px, 768px, 1024px, and 1440px widths.
+No horizontal scroll on any screen size.
+Touch targets minimum 44px on mobile.
+
+
+16. Complete Frontend Route Map
+Route
+Page
+Access
+/
+Landing / Homepage
+Public
+/explore
+Property Listing / Explore
+Public
+/properties/[id]
+Property Detail
+Public
+/about
+About Page
+Public
+/contact
+Contact Page
+Public
+/blog
+Blog Listing
+Public
+/blog/[slug]
+Blog Post Detail
+Public
+/faq
+FAQ Page
+Public
+/privacy
+Privacy Policy
+Public
+/terms
+Terms of Service
+Public
+/auth/login
+Login
+Guest only
+/auth/register
+Registration
+Guest only
+/auth/forgot-password
+Forgot Password
+Guest only
+/auth/reset-password
+Reset Password
+Guest only
+/dashboard/buyer/overview
+Buyer Overview
+Buyer auth
+/dashboard/buyer/saved
+Saved Properties
+Buyer auth
+/dashboard/buyer/inquiries
+My Inquiries
+Buyer auth
+/dashboard/buyer/recommendations
+AI Recommendations
+Buyer auth
+/dashboard/buyer/messages
+Messages
+Buyer auth
+/dashboard/buyer/notifications
+Notifications
+Buyer auth
+/dashboard/buyer/profile
+Buyer Profile
+Buyer auth
+/dashboard/seller/overview
+Seller Overview
+Seller auth
+/dashboard/seller/listings
+My Listings
+Seller auth
+/dashboard/seller/listings/new
+Add Property
+Seller auth
+/dashboard/seller/listings/[id]/edit
+Edit Property
+Seller auth
+/dashboard/seller/inquiries
+Seller Inquiries
+Seller auth
+/dashboard/seller/messages
+Seller Messages
+Seller auth
+/dashboard/seller/analytics
+Seller Analytics
+Seller auth
+/dashboard/seller/profile
+Seller Profile
+Seller auth
+/dashboard/admin/overview
+Admin Overview
+Admin auth
+/dashboard/admin/listings
+Manage Listings
+Admin auth
+/dashboard/admin/users
+Manage Users
+Admin auth
+/dashboard/admin/analytics
+Admin Analytics
+Admin auth
+/dashboard/admin/blogs
+Blog Management
+Admin auth
+/dashboard/admin/reports
+Reports
+Admin auth
+/dashboard/admin/notifications
+Admin Notifications
+Admin auth
+/dashboard/admin/profile
+Admin Profile
+Admin auth
+
+
+
+END OF CLIENT-SIDE PRD
+PropAI — Real Estate Platform | Client PRD v1.0

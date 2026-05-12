@@ -27,7 +27,7 @@ const validateRequest = (schema: IValidationSchema) => {
         next(result.error);
         return;
       }
-      req.body = result.data;
+      Object.defineProperty(req, "body", { value: result.data, writable: true, enumerable: true, configurable: true });
     }
     if (schema.params) {
       const result = await schema.params.safeParseAsync(req.params);
@@ -35,7 +35,7 @@ const validateRequest = (schema: IValidationSchema) => {
         next(result.error);
         return;
       }
-      req.params = result.data as Record<string, string>;
+      Object.defineProperty(req, "params", { value: result.data, writable: true, enumerable: true, configurable: true });
     }
 
     if (schema.query) {
@@ -44,7 +44,7 @@ const validateRequest = (schema: IValidationSchema) => {
         next(result.error);
         return;
       }
-      req.query = result.data as Record<string, string>;
+      Object.defineProperty(req, "query", { value: result.data, writable: true, enumerable: true, configurable: true });
     }
 
     if (schema.headers) {

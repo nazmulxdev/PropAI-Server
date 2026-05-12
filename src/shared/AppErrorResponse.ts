@@ -20,22 +20,20 @@ const AppErrorResponse = (
   req: Request,
   res: Response,
   error: IErrorResponse,
-  path: string,
+  path?: string,
 ) => {
   const isDev = config.NODE_ENV === "development";
 
   return res.status(error.statusCode).json({
     success: false,
-    statusCode: error.statusCode,
-    name: error.name,
-    code: error.code,
-    message: error.message,
-    ...(error.details !== undefined &&
-      error.details.length > 0 && { details: error.details }),
-    path,
-    timestamp: new Date().toISOString(),
-    requestId: req.headers["x-request-id"] ?? crypto.randomUUID(),
+    error: {
+      code: error.code || error.name || "INTERNAL_SERVER_ERROR",
+      message: error.message,
+      ...(error.details !== undefined &&
+        error.details.length > 0 && { details: error.details }),
+    },
     ...(isDev && { stack: error.stack }),
+    path,
   });
 };
 

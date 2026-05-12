@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 import AppError from "../shared/AppError";
-
-import { config } from "../config/env";
+import { logger } from "../utils/logger.js";
 import {
   handleAppError,
   handleBetterAuthError,
@@ -26,10 +25,8 @@ const globalErrorHandler = async (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _next: NextFunction,
 ) => {
-  // Log in non-production only
-  if (config.NODE_ENV !== "production") {
-    console.error("\n[GlobalErrorHandler]:", error);
-  }
+  // Log error using Winston
+  logger.error(error);
 
   // delete file from cloudinary if occur error during uploading file
 

@@ -12,3 +12,4 @@ api
 /generated/prisma
 
 /generated/prisma
+logs/

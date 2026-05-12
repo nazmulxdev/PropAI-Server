@@ -1,9 +1,0 @@
--- CreateEnum
-CREATE TYPE "Role" AS ENUM ('BUYER', 'SELLER', 'ADMIN');
-
--- CreateEnum
-CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'BANNED');
-
--- AlterTable
-ALTER TABLE "user" ADD COLUMN     "role" TEXT NOT NULL DEFAULT 'BUYER',
-ADD COLUMN     "userStatus" TEXT NOT NULL DEFAULT 'ACTIVE';
