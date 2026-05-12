@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id            String    @id
+  id            String    @id @default(uuid())
   name          String
   email         String
   emailVerified Boolean   @default(false)
@@ -23,7 +23,7 @@ model User {
 
   phone          String?
   bio            String?
-  avater         String?
+  avatar         String?
   preferredTypes String[]
   priceRangeMin  Float?
   priceRangeMax  Float?
@@ -95,7 +95,7 @@ model Verification {
 }
 
 model Property {
-  id            String          @id @default(cuid())
+  id            String          @id @default(uuid())
   title         String
   description   String
   price         Float
@@ -142,7 +142,7 @@ model Property {
 }
 
 model SavedProperty {
-  id         String   @id @default(cuid())
+  id         String   @id @default(uuid())
   userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   propertyId String
@@ -156,7 +156,7 @@ model SavedProperty {
 }
 
 model Inquiry {
-  id      String        @id @default(cuid())
+  id      String        @id @default(uuid())
   message String
   status  InquiryStatus @default(PENDING)
 
@@ -179,7 +179,7 @@ model Inquiry {
 }
 
 model Conversation {
-  id String @id @default(cuid())
+  id String @id @default(uuid())
 
   buyerId String
   buyer   User   @relation("BuyerConversations", fields: [buyerId], references: [id])
@@ -203,7 +203,7 @@ model Conversation {
 }
 
 model Notification {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   type      String // INQUIRY, MESSAGE, PROPERTY_APPROVED, etc.
@@ -218,7 +218,7 @@ model Notification {
 }
 
 model Message {
-  id      String  @id @default(cuid())
+  id      String  @id @default(uuid())
   content String
   read    Boolean @default(false)
 
@@ -236,7 +236,7 @@ model Message {
 }
 
 model Blog {
-  id         String     @id @default(cuid())
+  id         String     @id @default(uuid())
   title      String
   content    String
   coverImage String?
@@ -253,7 +253,7 @@ model Blog {
 }
 
 model Review {
-  id      String @id @default(cuid())
+  id      String @id @default(uuid())
   rating  Int // 1 to 5
   comment String
 
@@ -272,7 +272,7 @@ model Review {
 }
 
 model BrowsingHistory {
-  id         String   @id @default(cuid())
+  id         String   @id @default(uuid())
   userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   propertyId String

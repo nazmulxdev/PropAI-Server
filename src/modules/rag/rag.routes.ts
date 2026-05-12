@@ -6,14 +6,8 @@ import { ragQueryLimiter } from "../../shared/apiRate";
 
 const router = Router();
 
-// Admin/Superuser only for ingestion (secure it)
-router.post(
-  "/ingest",
-  authMiddleware(Role.ADMIN),
-  /* optionally adminOnly, */ ingestData,
-);
+router.post("/ingest", authMiddleware(Role.ADMIN), ingestData);
 
-// Public or auth-optional for query, but rate limited
 router.post("/query", ragQueryLimiter, queryRag);
 
 export const ragRoutes = router;

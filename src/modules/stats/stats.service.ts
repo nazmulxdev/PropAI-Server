@@ -1,5 +1,9 @@
 import { prisma } from "../../lib/prisma.js";
-import { Role, PropertyStatus, PropertyType } from "../../../generated/prisma/enums.js";
+import {
+  Role,
+  PropertyStatus,
+  PropertyType,
+} from "../../../generated/prisma/enums.js";
 
 interface BuyerStats {
   role: "BUYER";
